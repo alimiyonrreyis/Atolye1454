@@ -1,13 +1,14 @@
 {
-  "name": "Atölye 1453 Parfüm Üretim Sistemi",
+  "name": "Atölye 1453 · Parfüm Üretim Sistemi",
   "short_name": "Atölye 1453",
-  "description": "Profesyonel Parfüm Üretim ve Maliyet Hesaplama Sistemi",
-  "start_url": "index.html",
+  "description": "Profesyonel parfüm üretim, stok ve fiyatlandırma yönetim sistemi.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#050814",
   "theme_color": "#050814",
-  "orientation": "portrait-primary",
+  "lang": "tr",
   "icons": [
     {
       "src": "icon-192.png",

@@ -1,24 +1,43 @@
-const CACHE_NAME = 'atolye1453-v12.5';
+// Atölye 1453 — Service Worker
+// Not: Uygulama sık güncellendiği için HTML/JS için "network-first" stratejisi
+// kullanılır; böylece yeni bir sürüm yüklediğinde eski önbellek sürümü takılı kalmaz.
+// Sadece çevrimdışıyken önbellekten sunulur.
 
-// Kurulum aşamasında sadece ana dosyaları hafızaya almayı dene
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
+const CACHE_NAME = 'atolye1453-cache-v1';
+const CORE_ASSETS = [
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(CORE_ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(self.clients.claim());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
 
-// Güvenlik kısıtlamalarına takılmamak için esnek getirme (fetch) stratejisi
-self.addEventListener('fetch', (e) => {
-  // Dışarıdan gelen cdn (jspdf, google fonts vb.) isteklerini filtrele, hata vermesini engelle
-  if (!e.request.url.startsWith(self.location.origin)) {
-    return;
-  }
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-  e.respondWith(
-    fetch(e.request).catch(() => {
-      return caches.match(e.request);
-    })
+  event.respondWith(
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
   );
 });
