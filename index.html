@@ -1625,6 +1625,29 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
 <body>
 
+  <!-- Supabase kütüphanesi EN BAŞTA yükleniyor — aşağıdaki auth kodları
+       sayfanın en altında çalışacağı için, kütüphane onlardan önce hazır olmalı.
+       (Orijinal planda </body> öncesine konmuştu; bu, ana script'in sonundaki
+       supabase.createClient() çağrısından SONRA yüklenmesi anlamına gelirdi ve
+       "supabase is not defined" hatasına yol açardı. Bu yüzden buraya taşındı.) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- GİRİŞ EKRANI — kullanıcı giriş yapana kadar tüm ekranı kilitler -->
+  <div id="auth-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.98); z-index: 99999; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white;">
+    <div style="background: #1e1e1e; padding: 35px; border-radius: 16px; width: 360px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); border: 1px solid #2e2e2e;">
+      <h2 style="margin-bottom: 10px; color: #fff; font-size: 24px; font-weight: 600;">Atölye 1453</h2>
+      <p style="color: #888; font-size: 14px; margin-bottom: 25px;">KOKUCU MEVO Satış ve Formül Yönetimi</p>
+
+      <input type="email" id="auth-email" placeholder="E-posta Adresi" autocomplete="username" style="width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 14px; box-sizing: border-box; outline: none;">
+      <input type="password" id="auth-password" placeholder="Şifre" autocomplete="current-password" style="width: 100%; padding: 12px 15px; margin-bottom: 25px; border-radius: 8px; border: 1px solid #333; background: #2b2b2b; color: white; font-size: 14px; box-sizing: border-box; outline: none;">
+
+      <button id="btn-login" style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 12px; transition: 0.2s;">Giriş Yap</button>
+      <button id="btn-register" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s;">Kayıt Ol</button>
+
+      <p id="auth-error" style="color: #f87171; font-size: 13px; display: none; margin-top: 15px; background: rgba(248, 113, 113, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(248, 113, 113, 0.2);"></p>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
 
@@ -1760,6 +1783,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           Yedek Yükle
           <input type="file" accept=".json" onchange="importBackup(event)" style="display:none;" />
         </label>
+      </div>
+      <div style="padding:10px 4px 4px;border-top:1px solid rgba(var(--accent-2-rgb),0.1);margin-top:10px;">
+        <div id="auth-user-email" style="font-size:0.65rem;color:var(--text-faint);margin-bottom:6px;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        <button class="btn-outline" onclick="handleLogout()"
+          style="width:100%;justify-content:center;font-size:0.75rem;padding:7px 10px;color:#f87171;border-color:rgba(248,113,113,0.3);">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Çıkış Yap
+        </button>
       </div>
     </aside>
 
@@ -3423,6 +3458,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       <div>
         <input type="text" inputmode="decimal" class="inp" value="${row.pct}" placeholder="%" oninput="essenceRows[${i}].pct=parseFloat(this.value.replace(',','.'))||0;calcFormula()" style="font-size:0.8rem;text-align:center" />
         <div style="font-size:0.65rem;color:var(--text-faint);text-align:center">%</div>
+        <div id="ess-pct-dual-${i}" style="font-size:0.58rem;color:var(--text-dim2);text-align:center;white-space:nowrap;">Hacimsel: —% · Kütlesel: —%</div>
       </div>
       <div style="font-size:0.75rem;color:var(--accent-2);font-weight:600;text-align:center" id="ess-ml-${i}">—</div>
       <div style="font-size:0.75rem;color:#c084fc;font-weight:600;text-align:center" id="ess-gr-${i}">—</div>
@@ -3461,6 +3497,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       <div>
         <input type="text" inputmode="decimal" class="inp" value="${row.pct}" placeholder="%" oninput="additiveRows[${i}].pct=parseFloat(this.value.replace(',','.'))||0;calcFormula()" style="font-size:0.8rem;text-align:center;border-color:rgba(45,212,191,0.3)" />
         <div style="font-size:0.65rem;color:var(--text-faint);text-align:center">%</div>
+        <div id="add-pct-dual-${i}" style="font-size:0.58rem;color:var(--text-dim2);text-align:center;white-space:nowrap;">Hacimsel: —% · Kütlesel: —%</div>
       </div>
       <div style="font-size:0.75rem;color:#2dd4bf;font-weight:600;text-align:center" id="add-ml-${i}">—</div>
       <div style="font-size:0.75rem;color:#5eead4;font-weight:600;text-align:center" id="add-gr-${i}">—</div>
@@ -3547,6 +3584,27 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         const g = document.getElementById(`add-gr-${i}`);
         if (m) m.textContent = fmtNum(ml) + ' ml';
         if (g) g.textContent = fmtNum(gr) + ' gr';
+      });
+    }
+
+    // ---- UI-ONLY: seçili mod ne olursa olsun HER İKİ yüzdeyi (hacimsel + kütlesel)
+    // birlikte göster. Hesaplama motoruna dokunmuyor — sadece motorun zaten ürettiği
+    // row._vol / row._gr ve toplam hacim/kütle değerlerinden oranı türetip yazdırıyor. ----
+    function applyDualPercentages(totalMl, totalGr) {
+      const fmtPct = (n) => isFinite(n) ? n.toFixed(1) : '0.0';
+      essenceRows.forEach((row, i) => {
+        const el = document.getElementById(`ess-pct-dual-${i}`);
+        if (!el) return;
+        const volPct  = totalMl > 0 ? (row._vol || 0) / totalMl * 100 : 0;
+        const massPct = totalGr > 0 ? (row._gr  || 0) / totalGr * 100 : 0;
+        el.textContent = `Hacimsel: %${fmtPct(volPct)} · Kütlesel: %${fmtPct(massPct)}`;
+      });
+      additiveRows.forEach((row, i) => {
+        const el = document.getElementById(`add-pct-dual-${i}`);
+        if (!el) return;
+        const volPct  = totalMl > 0 ? (row._vol || 0) / totalMl * 100 : 0;
+        const massPct = totalGr > 0 ? (row._gr  || 0) / totalGr * 100 : 0;
+        el.textContent = `Hacimsel: %${fmtPct(volPct)} · Kütlesel: %${fmtPct(massPct)}`;
       });
     }
 
@@ -3766,6 +3824,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         applyWater(0, 0);
         applyEssences(() => 0, () => 0);
         applyAdditives(() => 0, () => 0);
+        applyDualPercentages(0, 0);
         buildWeighingTable(0, alcPct, inp.waterPct, inp.alcDensity, inp.waterDensity, 0, 0, 0, 0, masterDim, 0);
         const packUnit  = parseFloat(document.getElementById('f-packaging-cost').value) || 0;
         document.getElementById('packaging-total').textContent = `₺${fmtNum(packUnit * inp.qty)}`;
@@ -3778,6 +3837,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       // Unify totalMl / totalGr for table
       const totalMl = result.totalMl || 0;
       const totalGr = result.totalGr || (totalMl * batchAvgDensity(result.alcPct || alcPct, inp.waterPct, inp.alcDensity, inp.waterDensity));
+      applyDualPercentages(totalMl, totalGr);
 
       // Packaging
       const packUnit  = parseFloat(document.getElementById('f-packaging-cost').value) || 0;
@@ -3913,10 +3973,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       const isMlMaster = masterDim !== 'gr';
 
       let rows = [];
-      rows.push({ name: alcItem ? `Alkol (${alcItem.name})` : 'Alkol (Etanol)', pct: alcPct.toFixed(1), ml: fmtNum(alcVol), gr: fmtNum(alcGr), density: alcD, price: fmtNum(alcPriceGr, 4), cost: fmtNum(alcGr * alcPriceGr), cls: 'color:var(--accent-2)' });
-      rows.push({ name: waterItem ? `Su (${waterItem.name})` : 'Saf Su', pct: waterPct.toFixed(1), ml: fmtNum(waterVol), gr: fmtNum(waterGr), density: waterD, price: fmtNum(waterPrice, 4), cost: fmtNum(waterGr * waterPrice), cls: 'color:#60a5fa' });
-      essenceRows.forEach(r => { const c = (r._gr || 0) * (r.pricePerGr || 0); rows.push({ name: r.name || '(Esans)', pct: (r.pct || 0).toFixed(1), ml: fmtNum(r._vol || 0), gr: fmtNum(r._gr || 0), density: r.density || 0.95, price: fmtNum(r.pricePerGr || 0), cost: fmtNum(c), cls: 'color:#f59e0b' }); });
-      additiveRows.forEach(r => { const c = (r._gr || 0) * (r.pricePerGr || 0); rows.push({ name: r.name || '(Katkı)', pct: (r.pct || 0).toFixed(1), ml: fmtNum(r._vol || 0), gr: fmtNum(r._gr || 0), density: r.density || 1.0, price: fmtNum(r.pricePerGr || 0), cost: fmtNum(c), cls: 'color:#2dd4bf' }); });
+      const dualPct = (mlVal, grVal) => ({
+        volPct:  totalVol > 0 ? (mlVal / totalVol * 100) : 0,
+        massPct: totalGr  > 0 ? (grVal / totalGr  * 100) : 0,
+      });
+      rows.push({ name: alcItem ? `Alkol (${alcItem.name})` : 'Alkol (Etanol)', pct: alcPct.toFixed(1), ...dualPct(alcVol, alcGr), ml: fmtNum(alcVol), gr: fmtNum(alcGr), density: alcD, price: fmtNum(alcPriceGr, 4), cost: fmtNum(alcGr * alcPriceGr), cls: 'color:var(--accent-2)' });
+      rows.push({ name: waterItem ? `Su (${waterItem.name})` : 'Saf Su', pct: waterPct.toFixed(1), ...dualPct(waterVol, waterGr), ml: fmtNum(waterVol), gr: fmtNum(waterGr), density: waterD, price: fmtNum(waterPrice, 4), cost: fmtNum(waterGr * waterPrice), cls: 'color:#60a5fa' });
+      essenceRows.forEach(r => { const c = (r._gr || 0) * (r.pricePerGr || 0); rows.push({ name: r.name || '(Esans)', pct: (r.pct || 0).toFixed(1), ...dualPct(r._vol || 0, r._gr || 0), ml: fmtNum(r._vol || 0), gr: fmtNum(r._gr || 0), density: r.density || 0.95, price: fmtNum(r.pricePerGr || 0), cost: fmtNum(c), cls: 'color:#f59e0b' }); });
+      additiveRows.forEach(r => { const c = (r._gr || 0) * (r.pricePerGr || 0); rows.push({ name: r.name || '(Katkı)', pct: (r.pct || 0).toFixed(1), ...dualPct(r._vol || 0, r._gr || 0), ml: fmtNum(r._vol || 0), gr: fmtNum(r._gr || 0), density: r.density || 1.0, price: fmtNum(r.pricePerGr || 0), cost: fmtNum(c), cls: 'color:#2dd4bf' }); });
 
       let liquidCost = 0;
       rows.forEach(r => { liquidCost += parseFloat(r.cost.replace(/,/g, '')) || 0; });
@@ -3926,7 +3990,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         : '<th>Miktar (ml)</th><th style="color:var(--gold);">Miktar (gr) ★</th>';
 
       tbody.innerHTML = rows.map(r => `
-    <tr><td style="${r.cls};font-weight:600;">${r.name}</td><td style="text-align:center;">${r.pct}%</td>
+    <tr><td style="${r.cls};font-weight:600;">${r.name}</td>
+    <td style="text-align:center;line-height:1.35;">
+      <div>Hacimsel: <b>%${fmtNum(r.volPct)}</b></div>
+      <div style="color:var(--text-muted);">Kütlesel: %${fmtNum(r.massPct)}</div>
+    </td>
     <td style="text-align:center;font-weight:600;${isMlMaster?'color:var(--gold);':''}">${r.ml} ml</td>
     <td style="text-align:center;font-weight:600;${!isMlMaster?'color:var(--gold);':''}">${r.gr} gr</td>
     <td style="text-align:center;color:var(--text-muted);">${r.density}</td>
@@ -3995,7 +4063,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           <span style="color:var(--gold);font-weight:700;">${cur}${r.cost}</span>
         </div>
         <div class="weigh-chips">
-          <span class="weigh-chip">${r.pct}%</span>
+          <span class="weigh-chip">Hac: %${fmtNum(r.volPct)}</span>
+          <span class="weigh-chip">Küt: %${fmtNum(r.massPct)}</span>
           <span class="weigh-chip${isMlMaster ? ' weigh-chip-gold' : ''}">${r.ml} ml</span>
           <span class="weigh-chip${!isMlMaster ? ' weigh-chip-gold' : ''}">${r.gr} gr</span>
           <span class="weigh-chip weigh-chip-muted">ρ ${r.density}</span>
@@ -4210,6 +4279,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       formula.id = 'FML-' + Date.now();
       DB.formulas.push(formula);
       idbPut('formulas', formula);
+      supaSaveFormula(formula); // arka planda buluta da yaz (internet yoksa sessizce atlanır)
       toast('Reçete başarıyla kaydedildi!', 'success');
     }
 
@@ -4320,6 +4390,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         item.stock = (item.stock || 0) - gramsUsed;
         if (item.stock < 0) stockWarnings.push(`${item.name} (${fmtNum(Math.abs(item.stock))} gr açık)`);
         await idbPut('stock', item);
+        supaSaveStock(item); // düşülen stok miktarını buluta da yansıt
       }
 
       const batch = {
@@ -4345,6 +4416,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
       DB.batches.unshift(batch);
       await idbPut('batches', batch);
+      supaSaveBatch(batch); // arka planda buluta da yaz (internet yoksa sessizce atlanır)
       renderStock();
       if (stockWarnings.length) {
         toast(`⚠️ Stok yetersiz: ${stockWarnings.join(', ')}`, 'error', 7000);
@@ -4725,6 +4797,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       b.dealerPrice     = cost * (1 + dPct / 100);
       b.retailPrice     = b.dealerPrice * (1 + rPct / 100);
       await idbPut('batches', b);
+      supaSaveBatch(b); // arka planda buluta da yaz
       toast('✅ Kâr oranları kaydedildi (güncel maliyete göre)', 'success');
       renderArchive();
     }
@@ -4792,9 +4865,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           b.dealerPrice = newDealerPrice;
           b.retailPrice = newRetailPrice;
           await idbPut('batches', b);
+          supaSaveBatch(b);
           updated++;
         } else if (migrated > 0) {
           await idbPut('batches', b); // sadece paketleme baz fiyatı donduruldu, fiyat aynı kaldıysa da kaydet
+          supaSaveBatch(b);
         }
       }
       renderArchive();
@@ -4819,12 +4894,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         (b.additives || []).forEach(r => addRestore(r.stockId, r._gr || 0));
         for (const [stockId, grams] of restore) {
           const item = DB.stock.find(s => s.id === stockId);
-          if (item) { item.stock = (item.stock || 0) + grams; await idbPut('stock', item); }
+          if (item) { item.stock = (item.stock || 0) + grams; await idbPut('stock', item); supaSaveStock(item); }
         }
         renderStock();
       }
       DB.batches = DB.batches.filter(b => b.id !== id);
       await idbDelete('batches', id);
+      supaDeleteBatch(id); // arka planda buluttan da sil (internet yoksa sessizce atlanır)
       selectedBatchIds.delete(id);
       renderArchive();
       toast('Kayıt silindi, hammaddeler stoğa geri eklendi', 'info');
@@ -5046,6 +5122,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       else DB.stock.push(item);
 
       await idbPut('stock', item);
+      supaSaveStock(item); // arka planda buluta da yaz (internet yoksa sessizce atlanır)
       closeModal('modal-stock');
       renderStock();
       refreshStockDropdowns();
@@ -5061,6 +5138,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       if (!confirm('Bu stok kalemini silmek istediğinizden emin misiniz?')) return;
       DB.stock = DB.stock.filter(s => s.id !== id);
       await idbDelete('stock', id);
+      supaDeleteStock(id); // arka planda buluttan da sil (internet yoksa sessizce atlanır)
       renderStock();
       refreshStockDropdowns();
       toast('Stok kalemi silindi', 'info');
@@ -5152,6 +5230,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       if (!confirm('Bu reçeteyi silmek istediğinizden emin misiniz?')) return;
       DB.formulas = DB.formulas.filter(f => f.id !== id);
       await idbDelete('formulas', id);
+      supaDeleteFormula(id); // arka planda buluttan da sil (internet yoksa sessizce atlanır)
       renderFormulas();
       toast('Reçete silindi', 'info');
     }
@@ -5229,6 +5308,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       const sdmEl = document.getElementById('s-dealer-margin'); if (sdmEl) DB.settings.defaultDealerMargin = parseFloat(sdmEl.value) || 100;
       const srmEl = document.getElementById('s-retail-margin'); if (srmEl) DB.settings.defaultRetailMargin = parseFloat(srmEl.value) || 200;
       await saveSettings_idb();
+      supaSaveSettings(); // arka planda buluta da yaz (internet yoksa sessizce atlanır)
       toast('✅ Ayarlar başarıyla kaydedildi! Paketleme: ₺' + (DB.settings.defaultPackaging || 0) + ' | Bayi marjı: %' + (DB.settings.defaultDealerMargin || 100), 'success', 5000);
     }
 
@@ -5251,6 +5331,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       DB.settings.rates.EUR = parseFloat(document.getElementById('s-eur-rate').value) || 38;
       DB.settings.rates.GBP = parseFloat(document.getElementById('s-gbp-rate').value) || 45;
       await saveSettings_idb();
+      supaSaveSettings(); // yeni kuru buluta da yaz
 
       const newRate = DB.settings.rates.USD;
       const oldRate = (oldRates.USD && oldRates.USD >= 5) ? oldRates.USD : 35;
@@ -5269,6 +5350,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         }
         s.price = s.originalPrice * newRate;
         await idbPut('stock', s);
+        supaSaveStock(s); // güncellenen fiyatı buluta da yansıt
         rateUpdated++;
       }
       renderStock();
@@ -5285,6 +5367,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       DB.company.phone = document.getElementById('s-phone').value.trim();
       DB.company.email = document.getElementById('s-email').value.trim();
       await saveCompany_idb();
+      supaSaveCompany(); // arka planda buluta da yaz (internet yoksa sessizce atlanır)
       toast('✅ Şirket bilgileri kaydedildi!', 'success');
     }
 
@@ -5802,6 +5885,404 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       renderDashboard();
       updateThemeButtonsUI();
     })();
+
+    // ============================================================
+    // SUPABASE AUTH — kullanıcı giriş/kayıt/çıkış sistemi
+    // ============================================================
+    const SUPABASE_URL = "https://grktgdsemfyotyosqgvd.supabase.co";
+    // Not: Ekran görüntündeki "sb_publishable_..." anahtarını kullandım.
+    // Bu anahtar TASARIM GEREĞİ herkese açık/istemci tarafında güvenlidir
+    // (gizli anahtar değildir) — gerçek güvenlik Supabase'deki RLS
+    // politikalarından gelir. Yanlış/eski görünüyorsa buradan değiştirebilirsin.
+    const SUPABASE_KEY = "sb_publishable_fiV6_ToIlyanStLa-Pgtkw_E8ZAKTIb";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const authScreen     = document.getElementById("auth-screen");
+    const emailInput     = document.getElementById("auth-email");
+    const passwordInput  = document.getElementById("auth-password");
+    const btnLogin       = document.getElementById("btn-login");
+    const btnRegister    = document.getElementById("btn-register");
+    const authError      = document.getElementById("auth-error");
+    const authUserEmailEl = document.getElementById("auth-user-email");
+
+    function showAuthScreen(show) {
+      authScreen.style.display = show ? "flex" : "none";
+    }
+
+    // Oturum durumu her değiştiğinde (giriş/çıkış/token yenileme/başka
+    // sekmede çıkış yapma vb.) otomatik tetiklenir — tek elden yönetim.
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        showAuthScreen(false);
+        if (authUserEmailEl) authUserEmailEl.textContent = session.user.email;
+        console.log("Aktif Kullanıcı:", session.user.email);
+        syncStockFromSupabase(session.user.id); // giriş yapılınca bulut stoğunu çek
+        syncFormulasFromSupabase(session.user.id); // ve bulut reçetelerini çek
+        syncBatchesFromSupabase(session.user.id); // ve bulut üretimlerini çek
+        syncSettingsFromSupabase(session.user.id); // ve bulut ayarlarını çek
+      } else {
+        showAuthScreen(true);
+        if (authUserEmailEl) authUserEmailEl.textContent = "";
+        myBusinessId = null;
+      }
+    });
+
+    // ============================================================
+    // SUPABASE VERİ SENKRONİZASYONU — Stok modülü (v1: sadece stok)
+    // ============================================================
+    // Mantık: "önce yerel, arka planda buluta yaz". IndexedDB her zaman anında
+    // kullanılabilir (internetsiz de çalışır); Supabase, internet varsa
+    // arka planda senkronize eder. Bir bulut işlemi başarısız olursa (internet
+    // yok vb.) uygulama sessizce yerel veriyle çalışmaya devam eder — asla çökmez.
+    let myBusinessId = null;
+
+    async function resolveBusinessId(userId) {
+      if (myBusinessId) return myBusinessId;
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles').select('business_id').eq('id', userId).single();
+        if (error || !data) { console.warn('İşletme bilgisi alınamadı:', error); return null; }
+        myBusinessId = data.business_id;
+        return myBusinessId;
+      } catch (e) {
+        console.warn('İşletme bilgisi çözülemedi (internet yok olabilir):', e);
+        return null;
+      }
+    }
+
+    // Supabase satırı (snake_case) <-> uygulama içi stok nesnesi (camelCase)
+    function stockRowToLocal(row) {
+      return {
+        id: row.id, name: row.name, type: row.type, density: row.density,
+        stock: row.stock, min: row.min, price: row.price,
+        originalPrice: row.original_price, purchaseRate: row.purchase_rate,
+        purchaseDate: row.purchase_date, totalPrice: row.total_price,
+        totalQty: row.total_qty, qtyUnit: row.qty_unit, currency: row.currency,
+      };
+    }
+    function stockLocalToRow(item, businessId) {
+      return {
+        id: item.id, business_id: businessId, name: item.name, type: item.type,
+        density: item.density, stock: item.stock, min: item.min, price: item.price,
+        original_price: item.originalPrice, purchase_rate: item.purchaseRate,
+        purchase_date: item.purchaseDate, total_price: item.totalPrice,
+        total_qty: item.totalQty, qty_unit: item.qtyUnit, currency: item.currency,
+      };
+    }
+
+    // Giriş yapılınca (veya sayfa açılışında oturum zaten varsa) bulut stoğunu
+    // çek, yerel önbelleği (IndexedDB) güncelle, ekranı tazele.
+    async function syncStockFromSupabase(userId) {
+      try {
+        const businessId = await resolveBusinessId(userId);
+        if (!businessId) return;
+        const { data, error } = await supabaseClient.from('stock').select('*').eq('business_id', businessId);
+        if (error) throw error;
+        DB.stock = (data || []).map(stockRowToLocal);
+        for (const item of DB.stock) await idbPut('stock', item); // yerel önbelleği güncelle
+        renderStock();
+        refreshStockDropdowns();
+        renderPriceUpdateList();
+        calcFormula();
+        console.log(`☁️ Stok Supabase'den senkronize edildi (${DB.stock.length} kalem)`);
+      } catch (e) {
+        console.warn('Stok senkronizasyonu başarısız (muhtemelen internet yok), yerel veri kullanılıyor:', e);
+      }
+    }
+
+    // Bir stok kalemi kaydedilince buluta da yaz (başarısız olursa sessizce yut,
+    // yerel kayıt zaten yapıldığı için kullanıcı hiçbir şey kaybetmez)
+    async function supaSaveStock(item) {
+      try {
+        if (!myBusinessId) return;
+        const row = stockLocalToRow(item, myBusinessId);
+        const { error } = await supabaseClient.from('stock').upsert(row);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Stok buluta kaydedilemedi (internet yok olabilir), sadece yerelde kaldı:', e);
+      }
+    }
+
+    async function supaDeleteStock(id) {
+      try {
+        if (!myBusinessId) return;
+        const { error } = await supabaseClient.from('stock').delete().eq('id', id);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Stok buluttan silinemedi (internet yok olabilir):', e);
+      }
+    }
+
+    // ============================================================
+    // SUPABASE VERİ SENKRONİZASYONU — Reçeteler (formulas)
+    // ============================================================
+    // Reçetenin tüm içeriği (essences/additives/oranlar vb.) tek bir "data"
+    // JSONB kolonunda saklanıyor — alan alan eşleme gerekmiyor, tüm nesne
+    // aynen gidip geliyor. Sadece id/name ayrı kolonlarda (arama/filtre için).
+    function formulaRowToLocal(row) {
+      return { ...(row.data || {}), id: row.id };
+    }
+    function formulaLocalToRow(formula, businessId) {
+      return { id: formula.id, business_id: businessId, name: formula.name || 'İsimsiz Reçete', data: formula };
+    }
+
+    async function syncFormulasFromSupabase(userId) {
+      try {
+        const businessId = await resolveBusinessId(userId);
+        if (!businessId) return;
+        const { data, error } = await supabaseClient.from('formulas').select('*').eq('business_id', businessId);
+        if (error) throw error;
+        DB.formulas = (data || []).map(formulaRowToLocal);
+        for (const f of DB.formulas) await idbPut('formulas', f);
+        renderFormulas();
+        console.log(`☁️ Reçeteler Supabase'den senkronize edildi (${DB.formulas.length} adet)`);
+      } catch (e) {
+        console.warn('Reçete senkronizasyonu başarısız (muhtemelen internet yok), yerel veri kullanılıyor:', e);
+      }
+    }
+
+    async function supaSaveFormula(formula) {
+      try {
+        if (!myBusinessId) return;
+        const row = formulaLocalToRow(formula, myBusinessId);
+        const { error } = await supabaseClient.from('formulas').upsert(row);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Reçete buluta kaydedilemedi (internet yok olabilir), sadece yerelde kaldı:', e);
+      }
+    }
+
+    async function supaDeleteFormula(id) {
+      try {
+        if (!myBusinessId) return;
+        const { error } = await supabaseClient.from('formulas').delete().eq('id', id);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Reçete buluttan silinemedi (internet yok olabilir):', e);
+      }
+    }
+
+    // ============================================================
+    // SUPABASE VERİ SENKRONİZASYONU — Üretimler (batches / Arşiv)
+    // ============================================================
+    function batchRowToLocal(row) {
+      return {
+        id: row.id, batchNo: row.batch_no, name: row.name, category: row.category,
+        bottleSize: row.bottle_size, qty: row.qty, totalVol: row.total_vol,
+        alcPct: row.alc_pct, waterPct: row.water_pct,
+        prodMode: row.prod_mode, calcUnit: row.calc_unit,
+        prodDate: row.prod_date, readyDate: row.ready_date, agingDays: row.aging_days,
+        formula: row.formula, essences: row.essences || [], additives: row.additives || [],
+        alcGr: row.alc_gr, waterGr: row.water_gr,
+        alcStockId: row.alc_stock_id, waterStockId: row.water_stock_id,
+        liquidCost: row.liquid_cost, packagingCost: row.packaging_cost, totalCost: row.total_cost,
+        packagingCostBaseUSD: row.packaging_cost_base_usd, packagingPurchaseRate: row.packaging_purchase_rate,
+        dealerMarginPct: row.dealer_margin_pct, retailMarginPct: row.retail_margin_pct,
+        dealerPrice: row.dealer_price, retailPrice: row.retail_price,
+        longevity: row.longevity, sillage: row.sillage, rating: row.rating,
+      };
+    }
+    function batchLocalToRow(b, businessId) {
+      return {
+        id: b.id, business_id: businessId, batch_no: b.batchNo, name: b.name, category: b.category,
+        bottle_size: b.bottleSize, qty: b.qty, total_vol: b.totalVol,
+        alc_pct: b.alcPct, water_pct: b.waterPct,
+        prod_mode: b.prodMode, calc_unit: b.calcUnit,
+        prod_date: b.prodDate, ready_date: b.readyDate, aging_days: b.agingDays,
+        formula: b.formula || {}, essences: b.essences || [], additives: b.additives || [],
+        alc_gr: b.alcGr, water_gr: b.waterGr,
+        alc_stock_id: b.alcStockId, water_stock_id: b.waterStockId,
+        liquid_cost: b.liquidCost, packaging_cost: b.packagingCost, total_cost: b.totalCost,
+        packaging_cost_base_usd: b.packagingCostBaseUSD, packaging_purchase_rate: b.packagingPurchaseRate,
+        dealer_margin_pct: b.dealerMarginPct, retail_margin_pct: b.retailMarginPct,
+        dealer_price: b.dealerPrice, retail_price: b.retailPrice,
+        longevity: b.longevity, sillage: b.sillage, rating: b.rating,
+      };
+    }
+
+    async function syncBatchesFromSupabase(userId) {
+      try {
+        const businessId = await resolveBusinessId(userId);
+        if (!businessId) return;
+        const { data, error } = await supabaseClient.from('batches').select('*').eq('business_id', businessId);
+        if (error) throw error;
+        DB.batches = (data || []).map(batchRowToLocal)
+          .sort((a, b) => new Date(b.prodDate || 0) - new Date(a.prodDate || 0));
+        for (const b of DB.batches) await idbPut('batches', b);
+        renderArchive();
+        renderDashboard();
+        console.log(`☁️ Üretimler Supabase'den senkronize edildi (${DB.batches.length} adet)`);
+      } catch (e) {
+        console.warn('Üretim senkronizasyonu başarısız (muhtemelen internet yok), yerel veri kullanılıyor:', e);
+      }
+    }
+
+    async function supaSaveBatch(b) {
+      try {
+        if (!myBusinessId) return;
+        const row = batchLocalToRow(b, myBusinessId);
+        const { error } = await supabaseClient.from('batches').upsert(row);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Üretim buluta kaydedilemedi (internet yok olabilir), sadece yerelde kaldı:', e);
+      }
+    }
+
+    async function supaDeleteBatch(id) {
+      try {
+        if (!myBusinessId) return;
+        const { error } = await supabaseClient.from('batches').delete().eq('id', id);
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Üretim buluttan silinemedi (internet yok olabilir):', e);
+      }
+    }
+
+    // ============================================================
+    // SUPABASE VERİ SENKRONİZASYONU — Ayarlar (settings + company)
+    // ============================================================
+    // Not: settings ve company aynı satırda (business_settings, business_id
+    // birincil anahtar) iki ayrı JSONB kolonda tutuluyor. upsert() sadece
+    // gönderilen kolonu değiştirir, diğerine dokunmaz — bu yüzden ikisini
+    // ayrı ayrı kaydetmek güvenli.
+    function refreshSettingsFormFields() {
+      const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+      set('s-aging', DB.settings.agingDays);
+      set('s-bottle', DB.settings.defaultBottle);
+      set('s-currency', DB.settings.currency);
+      set('s-min-stock', DB.settings.minStock);
+      set('s-default-packaging', DB.settings.defaultPackaging);
+      set('s-dealer-margin', DB.settings.defaultDealerMargin);
+      set('s-retail-margin', DB.settings.defaultRetailMargin);
+      set('s-usd-rate', DB.settings.rates?.USD);
+      set('s-eur-rate', DB.settings.rates?.EUR);
+      set('s-gbp-rate', DB.settings.rates?.GBP);
+      set('s-company', DB.company.name);
+      set('s-address', DB.company.address);
+      set('s-phone', DB.company.phone);
+      set('s-email', DB.company.email);
+    }
+
+    async function syncSettingsFromSupabase(userId) {
+      try {
+        const businessId = await resolveBusinessId(userId);
+        if (!businessId) return;
+        const { data, error } = await supabaseClient.from('business_settings').select('*').eq('business_id', businessId).single();
+        if (error) throw error;
+        if (data) {
+          if (data.settings && Object.keys(data.settings).length) {
+            DB.settings = Object.assign({}, DB.settings, data.settings, { id: 'settings' });
+          }
+          if (data.company && Object.keys(data.company).length) {
+            DB.company = Object.assign({}, DB.company, data.company, { id: 'company' });
+          }
+          await saveSettings_idb();
+          await saveCompany_idb();
+          refreshSettingsFormFields();
+          renderStock();
+          renderPriceUpdateList();
+          calcFormula();
+          console.log("☁️ Ayarlar Supabase'den senkronize edildi");
+        }
+      } catch (e) {
+        console.warn('Ayarlar senkronizasyonu başarısız (muhtemelen internet yok), yerel veri kullanılıyor:', e);
+      }
+    }
+
+    async function supaSaveSettings() {
+      try {
+        if (!myBusinessId) return;
+        const { id, ...settingsNoId } = DB.settings;
+        const { error } = await supabaseClient.from('business_settings')
+          .upsert({ business_id: myBusinessId, settings: settingsNoId, updated_at: new Date().toISOString() });
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Ayarlar buluta kaydedilemedi (internet yok olabilir), sadece yerelde kaldı:', e);
+      }
+    }
+
+    async function supaSaveCompany() {
+      try {
+        if (!myBusinessId) return;
+        const { id, ...companyNoId } = DB.company;
+        const { error } = await supabaseClient.from('business_settings')
+          .upsert({ business_id: myBusinessId, company: companyNoId, updated_at: new Date().toISOString() });
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Şirket bilgileri buluta kaydedilemedi (internet yok olabilir), sadece yerelde kaldı:', e);
+      }
+    }
+
+    // Sayfa ilk açıldığında da bir kez kontrol et (onAuthStateChange zaten
+    // bunu tetikler ama INITIAL_SESSION gecikmesine karşı ek güvence)
+    async function checkUserSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        showAuthScreen(false);
+        if (authUserEmailEl) authUserEmailEl.textContent = session.user.email;
+      } else {
+        showAuthScreen(true);
+      }
+    }
+    checkUserSession();
+
+    function showAuthError(msg) {
+      authError.textContent = msg;
+      authError.style.display = "block";
+    }
+
+    // Kayıt Olma Butonu
+    btnRegister.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      authError.style.display = "none";
+
+      if (!email || !password) { showAuthError("Lütfen tüm alanları doldurun."); return; }
+
+      btnRegister.disabled = true; btnLogin.disabled = true;
+      const { error } = await supabaseClient.auth.signUp({ email, password });
+      btnRegister.disabled = false; btnLogin.disabled = false;
+
+      if (error) {
+        showAuthError(error.message);
+      } else {
+        // Supabase projende "Confirm email" ayarı açıksa kullanıcı önce
+        // e-postasındaki onay linkine tıklamadan giriş yapamaz.
+        alert("Kayıt başarılı! E-postana bir onay bağlantısı gönderilmiş olabilir — onaylamadıysan önce onu tıkla, sonra aynı bilgilerle giriş yap.");
+      }
+    });
+
+    // Giriş Yapma Butonu
+    btnLogin.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      authError.style.display = "none";
+
+      if (!email || !password) { showAuthError("Lütfen tüm alanları doldurun."); return; }
+
+      btnLogin.disabled = true; btnRegister.disabled = true;
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      btnLogin.disabled = false; btnRegister.disabled = false;
+
+      if (error) {
+        showAuthError("Giriş başarısız: " + error.message);
+      }
+      // Başarılıysa onAuthStateChange zaten ekranı kapatacak.
+    });
+
+    // Şifre alanında Enter'a basınca da giriş denesin (mobilde de rahat kullanılsın)
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") btnLogin.click();
+    });
+
+    // Çıkış Yapma (sidebar'daki buton bunu çağırıyor)
+    async function handleLogout() {
+      if (!confirm("Çıkış yapmak istediğinizden emin misiniz?")) return;
+      await supabaseClient.auth.signOut();
+      emailInput.value = "";
+      passwordInput.value = "";
+      // onAuthStateChange zaten auth ekranını otomatik açacak.
+    }
   </script>
 
 </body>
